@@ -1,0 +1,76 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/Memory.hdl
+/**
+ * The complete address space of the Hack computer's memory,
+ * including RAM and memory-mapped I/O. 
+ * The chip facilitates read and write operations, as follows:
+ *     Read:  out(t) = Memory[address(t)](t)
+ *     Write: if load(t-1) then Memory[address(t-1)](t) = in(t-1)
+ * In words: the chip always outputs the value stored at the memory 
+ * location specified by address. If load=1, the in value is loaded 
+ * into the memory location specified by address. This value becomes 
+ * available through the out output from the next time step onward.
+ * Address space rules:
+ * Only the upper 16K+8K+1 words of the Memory chip are used. 
+ * Access to address>0x6000 is invalid and reads 0. Access to any address
+ * in the range 0x4000-0x5FFF results in accessing the screen memory 
+ * map. Access to address 0x6000 results in accessing the keyboard 
+ * memory map. The behavior in these addresses is described in the Screen
+ * and Keyboard chip specifications given in the lectures and the book.
+ */
+CHIP Memory {
+    IN in[16], load, address[15];
+    OUT out[16];
+
+    PARTS:
+    /*
+    - Bits 0-13 address the RAM, but only if b14 is 0.
+    - Bits 0-12 address the SCREEN, but only if b14 is 1 and b13 is 0.
+    - KBD is addressed only is b14 is 1 and b13 is 1 and all other bits are 0.
+    - Every other address is not valid and should "return" 0.
+
+    - Each device is 'loaded' if it's addressed and load is 1.
+     */
+
+    // RAM selection
+    Not(in=address[14], out=selRAM);
+
+    // Screen selection
+    Not(in=address[13], out=selSCREEN1);
+    And(a=address[14], b=selSCREEN1, out=selSCREEN);
+
+    // KBD selection
+    And(a=address[14], b=address[13], out=selKBD);
+
+    // Loads
+    And(a=load, b=selRAM, out=loadRAM);
+    And(a=load, b=selSCREEN, out=loadSCREEN);
+
+
+    // OUTPUT selection
+
+    RAM16K(in=in, load=loadRAM,
+           address=address[0..13], out=outRam);
+    Screen(in=in, load=loadSCREEN,
+           address=address[0..12], out=outScreen);
+    Keyboard(out=outKbd);
+
+    Mux4Way16(a=outKbd, b=outScreen,
+              c=outRam, d=outRam,
+              sel[0]=selSCREEN, sel[1]=selRAM,
+              out=outTMP // or just 'out', see comment below
+    );
+
+    /*
+    The chip parts above do not catch cases of invalid address.
+    The tests pass nonetheless, so the chip parts
+    below are not strictly needed.
+     */
+    Or8Way(in=address[0..7], out=hasValueThrough7);
+    Or8Way(in=address[5..12], out=hasValueThrough12);
+    Or(a=hasValueThrough7, b=hasValueThrough12, out=hasValue);
+    And(a=selKBD, b=hasValue, out=addrNotValid);
+    Mux16(a=outTMP, b=false, sel=addrNotValid, out=out);
+}
