@@ -1,0 +1,125 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/CPU.hdl
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+
+    /*
+     What follows is a implementation of the architecture diagram
+     suggested in the 2nd ed. of the book (page 95).
+
+     Notes:
+     - A-instruction is s.t. b15 is 0.
+     - C-instruction is s.t. b15 is 1.
+     */
+
+    // The ALU output is stored in Areg only if
+    // this is a C-instruction (hence b15 is 1)
+    // and b5 is 1.
+    And(a=instruction[15], b=instruction[5], out=selA);
+    Mux16(a=instruction, b=outALU,
+          sel=selA,
+          out=inA);
+    // Areg is loaded in two cases: if it's a
+    // A-instruction (b15 is 0); if it's a C-instruction
+    // and outALU must be saved in Areg (as above with b5==1).
+    Not(in=instruction[15], out=loadA1);
+    Or(a=selA, b=loadA1, out=loadA);
+    ARegister(in=inA, load=loadA, out=outA,
+              out[0..14]=addressM);
+
+    // For C-instructions, b4 says whether the result
+    // must be stored in Dreg.
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    DRegister(in=outALU, load=loadD, out=outD);
+
+    // For C-instructions, b12 says whether the second
+    // input of the ALU is A or is M.
+    And(a=instruction[15], b=instruction[12],
+        out=selInM);
+    Mux16(a=outA, b=inM, sel=selInM, out=inALU2);
+
+    ALU(x=outD, y=inALU2,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        out=outALU,
+        out=outM,
+        zr=outALUzr,
+        ng=outALUng);
+
+    // For C-instructions,  b3 says whether to store
+    // the ALU result in M.
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    PC(in=outA,
+       load=loadPC, // PC is set to A only if there's a jump, see further below
+       inc=true,  // default behavior is to increment
+       reset=reset,
+       out[0..14]=pc);
+
+    /*
+     Use the j-bits of a C-instruction and the ALU outputs zr,ng
+     to detect whether there was a jump.
+
+     The following is based on the truth table for the j-bits (page 71).
+     - If j1==j2==j3==1, then always jump (regardless of zr,ng).
+     - Otherwise, jump only if any of the conditions below holds true:
+       * zr==1 AND j2==1 (outALU is 0, and j2 is 1 for all >=, ==, <= conditions).
+       * ng==1 AND j1==1 (outALU is negative, and j1 catches those cases).
+       * zr==0 AND ng==0 and j3==1 (remaining cases)
+
+     The chip parts below build these four signals and the boolean conditions.
+
+     Note:
+     - j2 is instruction[1]
+     - j1 is instruction[2]
+     - j3 is instruction[0]
+     */
+    And(a=instruction[1], b=outALUzr, out=jumpOK1);
+    And(a=instruction[2], b=outALUng, out=jumpOK2);
+    Not(in=outALUzr, out=notZR);
+    Not(in=outALUng, out=notNG);
+    And(a=notZR, b=notNG, out=tmp);
+    And(a=tmp, b=instruction[0], out=jumpOK3);
+    And(a=instruction[0], b=instruction[1], out=alwaysJ1);
+    And(a=alwaysJ1, b=instruction[2], out=alwaysJ);
+
+    Or(a=alwaysJ, b=jumpOK1, out=cond1);
+    Or(a=cond1, b=jumpOK2, out=cond2);
+    Or(a=cond2, b=jumpOK3, out=cond3);
+
+    And(a=instruction[15], b=cond3, out=loadPC);
+}
