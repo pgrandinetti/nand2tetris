@@ -8,6 +8,8 @@ import (
 // pc is used to make new labels, eg. (LABEL.0), (LABEL.1), ...
 var pc = 0
 
+var segNames = map[string]string {"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT", "temp": "TEMP"}
+
 // Push value from D register onto stack (RAM[SP++] = D)
 const pushDtoStack = "  //PUSH\n@SP\nA=M\nM=D\n@SP\nM=M+1\n"
 
@@ -19,8 +21,9 @@ const procDone = "@DONE\n0;JMP\n"
 
 // Operations add, sub, and, or utilize R13 to save the first operand (stack -> D -> R13)
 // and then implement D = D `op` R13
+// NOTE: In push x, push y, sub, then sematic is: y<-pop, x<-pop, D<-x-y (order matters)
 const add = "(ADD)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=D+M\n" + pushDtoStack + procDone
-const sub = "(SUB)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=M-D\n" + pushDtoStack + procDone  // in M-D order matters
+const sub = "(SUB)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=D-M\n" + pushDtoStack + procDone
 const and = "(AND)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=D&M\n" + pushDtoStack + procDone
 const or = "(OR)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=D|M\n" + pushDtoStack + procDone
 
@@ -105,7 +108,7 @@ func segmentToD(seg string, index int) string {
     }
     if seg == "temp" {
         // index must be [0, 7]
-        return fmt.Sprintf("@5\nA=A+%d\nD=M\n", index)
+        return fmt.Sprintf("@5\nD=A\n@%d\nA=D+A\nD=M\n", index)
     }
     if seg == "constant" {
         return fmt.Sprintf("@%d\nD=A\n", index)
@@ -113,7 +116,24 @@ func segmentToD(seg string, index int) string {
     // Must be "static"
     // The textbook suggests to use the variable 'FileName.index'
     // but I return a fixed 'Prog.index'.
-    return fmt.Sprintf("@Prog.%d\nA=M\nD=M\n", index)
+    return fmt.Sprintf("@Prog.%d\nD=M\n", index)
+}
+
+func DtoSegment(seg string, index int) string {
+    if seg == "local" || seg == "argument" || seg == "this" || seg == "that" {
+        return fmt.Sprintf("  // D->R13\n@R13\nM=D\n  // addr->R14\n@%d\nD=A\n@%s\nD=D+M\n@R14\nM=D\n  // R13->addrOfR14\n@R13\nD=M\n@R14\nA=M\nM=D\n", index, segNames[seg])
+    }
+    if seg == "pointer" {
+        if index == 0 {
+            return "@THIS\nM=D\n"
+        }
+        return "@THAT\nM=D\n"
+    }
+    if seg == "temp" {
+        return fmt.Sprintf("  // D->R13\n@R13\nM=D\n  // addr->R14\n@5\nD=A\n@%d\nD=D+A\n@R14\nM=D\n  // R13->addrOfR14\n@R13\nD=M\n@R14\nA=M\nM=D\n", index)
+    }
+    // else must be "static", because "constant" is virtual.
+    return fmt.Sprintf("@Prog.%d\nM=D\n", index)
 }
 
 func WriteArithmetic(instr Instruction) string {
@@ -146,15 +166,17 @@ func WriteArithmetic(instr Instruction) string {
 
 func WritePushPop(cType int, seg string, index int) string {
     var b strings.Builder
-    b.WriteString(segmentToD(seg, index))
     if cType == C_PUSH {
+        b.WriteString(segmentToD(seg, index))
         b.WriteString(pushDtoStack)
     } else {
         b.WriteString(popStackToD)
+        b.WriteString(DtoSegment(seg, index))
     }
     return b.String()
 }
 
+/*
 func main() {
     lines := [...]string {"push constant 7", "push local 2", "add", "push constant 13", "sub", "push constant 3", "eq"}
     var b strings.Builder
@@ -178,3 +200,4 @@ func main() {
     b.WriteString(end)
     fmt.Println(b.String())
 }
+*/

@@ -1,0 +1,396 @@
+// push constant 3030
+@3030
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop pointer 0
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@THIS
+M=D
+// push constant 3040
+@3040
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop pointer 1
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@THAT
+M=D
+// push constant 32
+@32
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop this 2
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@2
+D=A
+@THIS
+D=D+M
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// push constant 46
+@46
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop that 6
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@6
+D=A
+@THAT
+D=D+M
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// push pointer 0
+@THIS
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push pointer 1
+@THAT
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@BACK.0
+D=A
+@BACK
+M=D
+@ADD
+0;JMP
+(BACK.0)
+// push this 2
+@2
+D=A
+@THIS
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// sub
+@BACK.1
+D=A
+@BACK
+M=D
+@SUB
+0;JMP
+(BACK.1)
+// push that 6
+@6
+D=A
+@THAT
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@BACK.2
+D=A
+@BACK
+M=D
+@ADD
+0;JMP
+(BACK.2)
+@END
+0;JMP
+//
+// PROCEDURES SECTION
+//
+(ADD)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+D=D+M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(SUB)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+D=D-M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(NEG)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+D=-D
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(GT)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+
+@R13
+D=D-M
+@gt.TRUE
+D;JGT
+(gt.FALSE)
+D=0
+@gt.DONE
+0;JMP
+(gt.TRUE)
+D=-1
+(gt.DONE)
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(LT)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+
+@R13
+D=D-M
+@lt.TRUE
+D;JLT
+(lt.FALSE)
+D=0
+@lt.DONE
+0;JMP
+(lt.TRUE)
+D=-1
+(lt.DONE)
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(EQ)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // save to R13
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // compute
+@R13
+D=D-M
+@eq.TRUE
+D;JEQ
+(eq.FALSE)
+D=0
+@eq.DONE
+0;JMP
+(eq.TRUE)
+D=-1
+(eq.DONE)
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(AND)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+D=D&M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(OR)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+D=D|M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(NOT)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+D=!D
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(DONE)
+@BACK
+A=M
+0;JMP
+(END)
+@END
+0;JMP
