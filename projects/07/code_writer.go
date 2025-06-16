@@ -5,30 +5,87 @@ import (
     "strings"
 )
 
-// pc is used to make new labels, eg. (LABEL.0), (LABEL.1), ...
+// pc is used (and incremented) to make new labels, eg. (LABEL.0), (LABEL.1), ...
 var pc = 0
 
 var segNames = map[string]string {"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT", "temp": "TEMP"}
 
-// Push value from D register onto stack (RAM[SP++] = D)
+// RAM[SP++] = D
 const pushDtoStack = "  //PUSH\n@SP\nA=M\nM=D\n@SP\nM=M+1\n"
 
 // D = RAM[--SP]
 const popStackToD = "  //POP\n@SP\nM=M-1\nA=M\nD=M\n"
 
-// All computatins below will jump back to where they were called from
+/*
+    The arithmetic-logical operation (below) are implemented so that they are independent from
+    where in the RAM they are executed. For instance, 'add' does the following:
+      1. pop from stack to D reg. Save D to R13.
+      2. pop from stack to D.
+      3. compute D + R13. Push result to stack.
+      4. jump to (DONE).
+    All these operations are implemented so to jump to (DONE) eventually. The point being to avoid duplicating code.
+    This is further explained below.
+
+    Consider the VM program
+    ...
+    add
+    add
+
+    If translated line-by-line, the two lines 'add' would generate the same code, repeated twice.
+    Instead, I use the following ideas:
+      - whenever a arithmetic-logical operation is found, a new label is created as 'BACK.pc++' (pc is an integer 0,...)
+        For example, the first time a 'add' instruction is encountered, a label 'BACK.0' will be made.
+      - the code sets the value of the label 'BACK' to the address of the label 'BACK.0', then it jumps to the label (ADD)
+        which is unique in the program.
+      - ADD (like all other operations), will do a jump (DONE)
+      - DONE loads in the A reg the value pointed to by BACK, which was set to BACK.0. And that's how the PC goes back to where it was.
+
+    Example:
+
+              |  @BACK.0   // create new label, will be any address starting from 16,...
+    add ------+  D=A       // save the address of BACK.0 in D
+              |  @BACK     // put into A the address of BACK
+              |  M=D       // put in the address pointed by BACK the value of D (which now is the value of BACK.0)
+              |  @ADD      // jump to the ADD code
+              |  0;JMP
+              |  (BACK.0)  // ensure the PC jumps back here after ADD is finished
+    ...
+    ...
+    ...       |  @BACK.1   // the same as the first add, but using a new label 'BACK.1'
+    add ------+  D=A
+              |  @BACK
+              |  M=D
+              |  @ADD
+              |  0;JMP
+              |  (BACK.1)
+
+    // code for 'add'. This is written only one time.
+    (ADD)
+    // ...pop, pop, sum, push
+    @DONE
+    0;JMP
+
+    // code for 'gt'. This is written only one time.
+    (GT)
+    // ... pop, pop, diff, set D=-1 or D=0
+    @DONE
+    0;JMP
+
+    // code for 'done'
+    (DONE)
+    @BACK   // put in A the value of the label BACK. This is never changed by the program, but the content of that register is changed.
+    A=M     // put in A the value of the register pointed by BACK. This would be the value BACK.0, then the value BACK.1, etc.
+    0;JMP
+*/
+
 const procDone = "@DONE\n0;JMP\n"
 
-// Operations add, sub, and, or utilize R13 to save the first operand (stack -> D -> R13)
-// and then implement D = D `op` R13
-// NOTE: In push x, push y, sub, then sematic is: y<-pop, x<-pop, D<-x-y (order matters)
+// NOTE: In 'push x, push y, sub' the sematic is: y<-pop, x<-pop, D<-x-y (order matters)
 const add = "(ADD)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=D+M\n" + pushDtoStack + procDone
 const sub = "(SUB)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=D-M\n" + pushDtoStack + procDone
 const and = "(AND)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=D&M\n" + pushDtoStack + procDone
 const or = "(OR)\n" + popStackToD + "@R13\nM=D\n" + popStackToD + "@R13\nD=D|M\n" + pushDtoStack + procDone
 
-// Operations neg, not perform
-// D = op D
 const neg = "(NEG)\n" + popStackToD + "D=-D\n" + pushDtoStack + procDone
 const not = "(NOT)\n" + popStackToD + "D=!D\n" + pushDtoStack + procDone
 
@@ -77,9 +134,6 @@ D=-1
 (gt.DONE)
 ` + pushDtoStack + procDone
 
-// Used to jump back after executing a add,neg,gt,... computation.
-// This uses a label "BACK" that needs to be set as a pointer to the real
-// "back" instruction (BACK.0, BACK.1, ...)
 const done = "(DONE)\n@BACK\nA=M\n0;JMP\n"
 
 // end implements an infinite loop
@@ -119,7 +173,11 @@ func segmentToD(seg string, index int) string {
     return fmt.Sprintf("@Prog.%d\nD=M\n", index)
 }
 
+// segment[index] = D
 func DtoSegment(seg string, index int) string {
+    // NOTE. Some of these use both R13 and R14 as intermediate variables.
+    // R13 is used to hold the value when D will b overwritten by other computations.
+    // R14 is used to compute the final address: for example 'local 4' requires to do '@LCL + 4'
     if seg == "local" || seg == "argument" || seg == "this" || seg == "that" {
         return fmt.Sprintf("  // D->R13\n@R13\nM=D\n  // addr->R14\n@%d\nD=A\n@%s\nD=D+M\n@R14\nM=D\n  // R13->addrOfR14\n@R13\nD=M\n@R14\nA=M\nM=D\n", index, segNames[seg])
     }
@@ -137,19 +195,6 @@ func DtoSegment(seg string, index int) string {
 }
 
 func WriteArithmetic(instr Instruction) string {
-    /* Make a new label (BACK.pc),
-       then set the value of (BACK) to this new label because it's used in (DONE)
-       then jump to add/sub/neg/...
-    Eg. if pc=53
-     @BACK.53
-     D=A
-     @BACK
-     M=D      // now (BACK) points to (BACK.53) and will be jumped to
-              // from (DONE) which is a goto for all ADD/SUB/NEG operations
-     @ADD
-     0;JMP
-     (BACK.53)
-    */
     var b strings.Builder
     op := Arg1(instr, C_ARITHMETIC)
     label := fmt.Sprintf("BACK.%d", pc)

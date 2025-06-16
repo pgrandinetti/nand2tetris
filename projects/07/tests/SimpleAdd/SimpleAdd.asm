@@ -66,7 +66,7 @@ M=M-1
 A=M
 D=M
 @R13
-D=M-D
+D=D-M
   //PUSH
 @SP
 A=M
