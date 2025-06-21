@@ -1,0 +1,37 @@
+// main
+push constant 2
+push constant 3
+call sum 2
+(label END)
+goto END
+
+function sum 0
+  push argument 0
+  push argument 1
+  add
+  return
+
+// Returns x * y
+//function mult 2
+//  push constant 0
+//  pop sum
+//  push constant 0
+//  pop i
+//label WHILE_LOOP
+//  push i
+//  push ARG 1
+//  lt
+//  neg
+//  if-goto WHILE_END
+//  push sum
+//  push ARG 0
+//  add
+//  pop sum
+//  push i
+//  push constant 1
+//  add
+//  pop i
+//  goto WHILE_LOOP
+//label WHILE_END
+//  push sum
+//  return
