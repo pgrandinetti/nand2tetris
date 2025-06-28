@@ -28,13 +28,22 @@ func Advance(rawLine string) Instruction {
 	// If rawLine is blank or a comment line, returns "".
 	//
 	// Assume that the VM code is error-free (A1).
-	inpt := strings.TrimSpace(rawLine)
+
+    inpt := strings.TrimSpace(rawLine)
+    if len(inpt) == 0 || inpt[0:2] == "//" {
+		// Empty or comment line (A1).
+		return ""
+	}
+
+    i := 0  // index of first '/'
+    for ; i < len(inpt); i++ {
+        if inpt[i] == '/' {
+            break
+        }
+    }
+	inpt = strings.TrimSpace(inpt[:i])
 	if len(inpt) == 0 {
 		return inpt
-	}
-	if inpt[0:2] == "//" {
-		// Comment line (A1).
-		return ""
 	}
 	return strings.Join(strings.Fields(inpt), " ") // collapse whitespaces into one
 }

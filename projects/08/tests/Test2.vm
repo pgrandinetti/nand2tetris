@@ -5,10 +5,14 @@ call sum 2
 label END
 goto END
 
-function sum 0
+function sum 1
+  // arg1 + arg2 + 4
   push argument 0
   push argument 1
   add
+  pop local 0
+  push constant 4
+  push local 0
+  add
   return
-
 

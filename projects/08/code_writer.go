@@ -16,7 +16,7 @@ var CurrentVMFunc = ""
 // pc is used (and incremented) to make new labels, eg. (LABEL.0), (LABEL.1), ...
 var pc = 0
 
-var segNames = map[string]string{"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT", "temp": "TEMP"}
+var segNames = map[string]string{"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT", "temp": "TEMP", "constant": "constant"}
 
 // RAM[SP++] = D
 const pushDtoStack = "  //PUSH\n@SP\nA=M\nM=D\n@SP\nM=M+1\n"
@@ -149,7 +149,7 @@ const end = "(END)\n@END\n0;JMP\n"
 
 // D = segment[index]
 func segmentToD(seg string, index int) string {
-    seg = segNames[seg]
+    //seg = segNames[seg]
 	if seg == "local" {
 		return fmt.Sprintf("@%d\nD=A\n@LCL\nA=D+M\nD=M\n", index)
 	}
@@ -176,8 +176,11 @@ func segmentToD(seg string, index int) string {
 	if seg == "constant" {
 		return fmt.Sprintf("@%d\nD=A\n", index)
 	}
-	// Must be "static"
-	return fmt.Sprintf("@%s.%d\nD=M\n", CurrentVMFile, index)
+    if seg == "static" {
+	    return fmt.Sprintf("@%s.%d\nD=M\n", CurrentVMFile, index)
+    }
+    msg := fmt.Sprintf("not valid: segment |%s|", seg)
+    panic(msg)
 }
 
 // segment[index] = D
@@ -197,8 +200,12 @@ func DtoSegment(seg string, index int) string {
 	if seg == "temp" {
 		return fmt.Sprintf("  // D->R13\n@R13\nM=D\n  // addr->R14\n@5\nD=A\n@%d\nD=D+A\n@R14\nM=D\n  // R13->addrOfR14\n@R13\nD=M\n@R14\nA=M\nM=D\n", index)
 	}
-	// else must be "static", because "constant" is virtual.
-	return fmt.Sprintf("@%s.%d\nM=D\n", CurrentVMFile, index)
+    if seg == "static" {
+	    // else must be "static", because "constant" is virtual.
+	    return fmt.Sprintf("@%s.%d\nM=D\n", CurrentVMFile, index)
+    }
+    msg := fmt.Sprintf("segment not valid: |%s|", seg)
+    panic(msg)
 }
 
 func WriteArithmetic(instr Instruction) string {
@@ -266,15 +273,15 @@ func WriteCall(fName string, nArgs int) string {
 	// push returnAddress
 	b.WriteString(fmt.Sprintf("@%s\nD=A\n", retAddr) + pushDtoStack)
 	// push LCL
-	b.WriteString("@LCL\nD=A\n" + pushDtoStack)
+	b.WriteString("@LCL\nD=M\n" + pushDtoStack)
 	// push ARG
-	b.WriteString("@ARG\nD=A\n" + pushDtoStack)
+	b.WriteString("@ARG\nD=M\n" + pushDtoStack)
 	// push THIS
-	b.WriteString("@THIS\nD=A\n" + pushDtoStack)
+	b.WriteString("@THIS\nD=M\n" + pushDtoStack)
 	// push THAT
-	b.WriteString("@THAT\nD=A\n" + pushDtoStack)
+	b.WriteString("@THAT\nD=M\n" + pushDtoStack)
 	// ARG = SP - 5 - nArgs
-	b.WriteString(fmt.Sprintf("@5\nD=A\n@%d\nD=D+A\n@SP\nD=M-D\n", nArgs))
+	b.WriteString(fmt.Sprintf("@5\nD=A\n@%d\nD=D+A\n@SP\nD=M-D\n@ARG\nM=D\n", nArgs))
 	// LCL = SP
 	b.WriteString("@SP\nD=M\n@LCL\nM=D\n")
 	// goto fName
@@ -287,16 +294,16 @@ func WriteCall(fName string, nArgs int) string {
 func WriteReturn() string {
 	var b strings.Builder
 	b.WriteString("  // return\n")
-	// R13 = LCL (use R13 the address of the function frame)
+	// R13 = LCL (use R13 to save the address of the function frame)
 	b.WriteString("@LCL\nD=M\n@R13\nM=D\n")
 	// retAddr = *(R13 - 5) (use R14 to store this)
 	b.WriteString("@5\nD=A\n@R13\nD=M-D\nA=D\nD=M\n@R14\nM=D\n")
 	// *ARG = pop()
-	b.WriteString(popStackToD + "@ARG\nM=D\n")
+	b.WriteString(popStackToD + "@ARG\nA=M\nM=D\n")
 	// SP = ARG + 1
 	b.WriteString("@ARG\nD=M+1\n@SP\nM=D\n")
 	// THAT = *(R13 - 1)
-	b.WriteString("@1\nD=A\n@R13\nD=M-D\nA=D\nD=M\n@THAT\nM=D\n")
+	b.WriteString("@R13\nD=M-1\nA=D\nD=M\n@THAT\nM=D\n")
 	// THIS = *(R13 - 2)
 	b.WriteString("@2\nD=A\n@R13\nD=M-D\nA=D\nD=M\n@THIS\nM=D\n")
 	// ARG = *(R13 - 3)

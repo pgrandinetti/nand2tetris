@@ -20,7 +20,7 @@ M=M+1
 // [END] push constant 3
 // call sum 2(type 8)
   // call sum 2
-@Test1.vm.$ret.0
+@Test2.vm.$ret.0
 D=A
   //PUSH
 @SP
@@ -72,23 +72,31 @@ M=D
 D=M
 @LCL
 M=D
-@Test1.vm.sum
+@Test2.vm.sum
 0;JMP
-(Test1.vm.$ret.0)
+(Test2.vm.$ret.0)
 // [END] call sum 2
 // label END(type 3)
   // label
-(Test1.vm.$END)
+(Test2.vm.$END)
 // [END] label END
 // goto END(type 4)
   // goto
-@Test1.vm.$END
+@Test2.vm.$END
 0;JMP
 // [END] goto END
-// function sum 0(type 6)
-  // function sum 0
-(Test1.vm.sum)
-// [END] function sum 0
+// function sum 1(type 6)
+  // function sum 1
+(Test2.vm.sum)
+@0
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// [END] function sum 1
 // push argument 0(type 1)
 @0
 D=A
@@ -123,6 +131,61 @@ M=D
 @ADD
 0;JMP
 (BACK.1)
+// [END] add
+// pop local 0(type 2)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@0
+D=A
+@LCL
+D=D+M
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// [END] pop local 0
+// push constant 4(type 1)
+@4
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// [END] push constant 4
+// push local 0(type 1)
+@0
+D=A
+@LCL
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// [END] push local 0
+// add(type 0)
+@BACK.2
+D=A
+@BACK
+M=D
+@ADD
+0;JMP
+(BACK.2)
 // [END] add
 // return(type 7)
   // return

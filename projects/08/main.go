@@ -27,8 +27,8 @@ func Translate(fpath string) string {
 		if len(instr) == 0 {
 			continue
 		}
-		b.WriteString("// " + instr + "\n")
 		cType = CommandType(instr)
+        b.WriteString("// " + instr + fmt.Sprintf("(type %d)\n", cType))
 		if cType == C_ARITHMETIC {
 			b.WriteString(WriteArithmetic(instr))
         } else if cType == C_LABEL {
@@ -44,9 +44,12 @@ func Translate(fpath string) string {
             b.WriteString(WriteCall(Arg1(instr, cType), Arg2(instr)))
         } else if cType == C_RETURN {
             b.WriteString(WriteReturn())
-        } else {
+        } else if cType == C_PUSH || cType == C_POP {
 			b.WriteString(WritePushPop(cType, Arg1(instr, cType), Arg2(instr)))
-		}
+		} else {
+            msg := fmt.Sprintf("cType not valid: %s", instr) 
+            panic(msg)
+        }
         b.WriteString("// [END] " + instr + "\n")
 	}
 	b.WriteString("@END\n0;JMP\n")
