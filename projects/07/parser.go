@@ -35,7 +35,7 @@ func Advance(rawLine string) Instruction {
 		// Comment line (A1).
 		return ""
 	}
-	return strings.Join(strings.Fields(inpt), " ")  // collapse whitespaces into one
+	return strings.Join(strings.Fields(inpt), " ") // collapse whitespaces into one
 }
 
 func CommandType(instr Instruction) int {

@@ -1,0 +1,24 @@
+// Returns x * y
+function Mult.mult 2
+  push constant 0
+  pop local 0  // local 0 is 'sum'
+  push constant 0
+  pop local 1  // local 1 is 'i'
+label WHILE_LOOP
+  push local 1
+  push argument 1
+  lt
+  not  // the book has 'neg' but I think it's a typo!
+  if-goto WHILE_END
+  push local 0
+  push argument 0
+  add
+  pop local 0
+  push local 1
+  push constant 1
+  add
+  pop local 1
+  goto WHILE_LOOP
+label WHILE_END
+  push local 0
+  return

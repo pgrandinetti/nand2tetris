@@ -1,0 +1,6 @@
+function Sys.init 0
+	push constant 4
+    push constant 2
+	call Main.foo 2  // expects 4+2+7=13 to be at the top of the stack
+label END  
+	goto END  // loops infinitely

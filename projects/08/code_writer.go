@@ -149,7 +149,7 @@ const end = "(END)\n@END\n0;JMP\n"
 
 // D = segment[index]
 func segmentToD(seg string, index int) string {
-    //seg = segNames[seg]
+	//seg = segNames[seg]
 	if seg == "local" {
 		return fmt.Sprintf("@%d\nD=A\n@LCL\nA=D+M\nD=M\n", index)
 	}
@@ -176,11 +176,11 @@ func segmentToD(seg string, index int) string {
 	if seg == "constant" {
 		return fmt.Sprintf("@%d\nD=A\n", index)
 	}
-    if seg == "static" {
-	    return fmt.Sprintf("@%s.%d\nD=M\n", CurrentVMFile, index)
-    }
-    msg := fmt.Sprintf("not valid: segment |%s|", seg)
-    panic(msg)
+	if seg == "static" {
+		return fmt.Sprintf("@%s.%d\nD=M\n", CurrentVMFile, index)
+	}
+	msg := fmt.Sprintf("not valid: segment |%s|", seg)
+	panic(msg)
 }
 
 // segment[index] = D
@@ -200,12 +200,12 @@ func DtoSegment(seg string, index int) string {
 	if seg == "temp" {
 		return fmt.Sprintf("  // D->R13\n@R13\nM=D\n  // addr->R14\n@5\nD=A\n@%d\nD=D+A\n@R14\nM=D\n  // R13->addrOfR14\n@R13\nD=M\n@R14\nA=M\nM=D\n", index)
 	}
-    if seg == "static" {
-	    // else must be "static", because "constant" is virtual.
-	    return fmt.Sprintf("@%s.%d\nM=D\n", CurrentVMFile, index)
-    }
-    msg := fmt.Sprintf("segment not valid: |%s|", seg)
-    panic(msg)
+	if seg == "static" {
+		// else must be "static", because "constant" is virtual.
+		return fmt.Sprintf("@%s.%d\nM=D\n", CurrentVMFile, index)
+	}
+	msg := fmt.Sprintf("segment not valid: |%s|", seg)
+	panic(msg)
 }
 
 func WriteArithmetic(instr Instruction) string {
@@ -236,16 +236,15 @@ func WritePushPop(cType int, seg string, index int) string {
 }
 
 func WriteLabel(arg1 string) string {
-	return fmt.Sprintf("  // label\n(%s.%s$%s)\n", CurrentVMFile, CurrentVMFunc, arg1)
+	return fmt.Sprintf("(%s.%s$%s)\n", CurrentVMFile, CurrentVMFunc, arg1)
 }
 
 func WriteGoto(arg1 string) string {
-	return fmt.Sprintf("  // goto\n@%s.%s$%s\n0;JMP\n", CurrentVMFile, CurrentVMFunc, arg1)
+	return fmt.Sprintf("@%s.%s$%s\n0;JMP\n", CurrentVMFile, CurrentVMFunc, arg1)
 }
 
 func WriteIf(arg1 string) string {
 	var b strings.Builder
-	b.WriteString("  // if-goto\n")
 	b.WriteString(popStackToD)
 	b.WriteString(fmt.Sprintf("@%s.%s$%s\n", CurrentVMFile, CurrentVMFunc, arg1))
 	b.WriteString("D;JNE\n")
@@ -254,9 +253,14 @@ func WriteIf(arg1 string) string {
 
 func WriteFunction(fName string, nVars int) string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("  // function %s %d\n", fName, nVars))
-	b.WriteString(fmt.Sprintf("(%s.%s)\n", CurrentVMFile, fName))
-	for range nVars {
+	var labelName string
+	if strings.Contains(fName, ".") {
+		labelName = fName
+	} else {
+		labelName = fmt.Sprintf("%s.%s", CurrentVMFile, fName)
+	}
+	b.WriteString(fmt.Sprintf("(%s)\n", labelName))
+	for i := 0; i < nVars; i++ {
 		// Initialize local variables for the function.
 		// repeat 'nVars' times:
 		// push constant 0
@@ -267,7 +271,6 @@ func WriteFunction(fName string, nVars int) string {
 
 func WriteCall(fName string, nArgs int) string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("  // call %s %d\n", fName, nArgs))
 	retAddr := fmt.Sprintf("%s.%s$ret.%d", CurrentVMFile, CurrentVMFunc, pc)
 	pc++
 	// push returnAddress
@@ -285,7 +288,15 @@ func WriteCall(fName string, nArgs int) string {
 	// LCL = SP
 	b.WriteString("@SP\nD=M\n@LCL\nM=D\n")
 	// goto fName
-	b.WriteString(fmt.Sprintf("@%s.%s\n0;JMP\n", CurrentVMFile, fName))
+	// Handle two cases: 'call func', 'call File.func'
+	// The former will be translated as 'call ThisFile.func'
+	var jumpName string
+	if strings.Contains(fName, ".") {
+		jumpName = fName
+	} else {
+		jumpName = fmt.Sprintf("%s.%s", CurrentVMFile, fName)
+	}
+	b.WriteString(fmt.Sprintf("@%s\n0;JMP\n", jumpName))
 	// insert retAddr now
 	b.WriteString("(" + retAddr + ")\n")
 	return b.String()
@@ -293,7 +304,6 @@ func WriteCall(fName string, nArgs int) string {
 
 func WriteReturn() string {
 	var b strings.Builder
-	b.WriteString("  // return\n")
 	// R13 = LCL (use R13 to save the address of the function frame)
 	b.WriteString("@LCL\nD=M\n@R13\nM=D\n")
 	// retAddr = *(R13 - 5) (use R14 to store this)
@@ -312,6 +322,14 @@ func WriteReturn() string {
 	b.WriteString("@4\nD=A\n@R13\nD=M-D\nA=D\nD=M\n@LCL\nM=D\n")
 	// goto retAddr
 	b.WriteString("@R14\nA=M\n0;JMP\n")
+	return b.String()
+}
+
+func WriteBootstrap() string {
+	var b strings.Builder
+	b.WriteString("@256\nD=A\n@SP\nM=D\n")
+	b.WriteString("@Sys.init\n0;JMP\n")
+	b.WriteString("// [END] Bootstrap\n")
 	return b.String()
 }
 

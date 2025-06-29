@@ -17,49 +17,49 @@ func TestAdvance(t *testing.T) {
 		t.Errorf("expected |%s| computed |%s|", exp, res)
 	}
 
-    inpt = "not  // comment"
-    res = Advance(inpt)
-    exp = "not"
-    if res != exp {
-        t.Errorf("expected |%s| computed |%s|", exp, res)
-    }
+	inpt = "not  // comment"
+	res = Advance(inpt)
+	exp = "not"
+	if res != exp {
+		t.Errorf("expected |%s| computed |%s|", exp, res)
+	}
 
-    inpt = "push local 1 //"
-    res = Advance(inpt)
-    exp = "push local 1"
-    if res != exp {
-        t.Errorf("expected |%s| computed |%s|", exp, res)
-    }
+	inpt = "push local 1 //"
+	res = Advance(inpt)
+	exp = "push local 1"
+	if res != exp {
+		t.Errorf("expected |%s| computed |%s|", exp, res)
+	}
 
-    inpt = "push argument 1"
-    res = Advance(inpt)
-    exp = "push argument 1"
-    if res != exp {
-        t.Errorf("expected |%s| computed |%s|", exp, res)
-    }
+	inpt = "push argument 1"
+	res = Advance(inpt)
+	exp = "push argument 1"
+	if res != exp {
+		t.Errorf("expected |%s| computed |%s|", exp, res)
+	}
 }
 
 func TestType(t *testing.T) {
-    instr := "call mult 2"
-    exp := C_CALL
-    res := CommandType(instr)
+	instr := "call mult 2"
+	exp := C_CALL
+	res := CommandType(instr)
 	if res != exp {
 		t.Errorf("expected |%d| computed |%d|", exp, res)
 	}
 
-    instr = "push local 2"
-    exp = C_PUSH
-    res = CommandType(instr)
-    if res != exp {
-        t.Errorf("expected |%d| computed |%d|", exp, res)
-    }
+	instr = "push local 2"
+	exp = C_PUSH
+	res = CommandType(instr)
+	if res != exp {
+		t.Errorf("expected |%d| computed |%d|", exp, res)
+	}
 
-    instr = "label END"
-    exp = C_LABEL
-    res = CommandType(instr)
-    if res != exp {
-        t.Errorf("expected |%d| computed |%d|", exp, res)
-    }
+	instr = "label END"
+	exp = C_LABEL
+	res = CommandType(instr)
+	if res != exp {
+		t.Errorf("expected |%d| computed |%d|", exp, res)
+	}
 }
 
 func TestArg1(t *testing.T) {
@@ -91,8 +91,8 @@ func TestArg1(t *testing.T) {
 		t.Errorf("expected |%s| computed |%s|", exp, res)
 	}
 
-    instr = "push constant 2"
-    exp = "constant"
+	instr = "push constant 2"
+	exp = "constant"
 	res = Arg1(instr, C_PUSH)
 	if res != exp {
 		t.Errorf("expected |%s| computed |%s|", exp, res)

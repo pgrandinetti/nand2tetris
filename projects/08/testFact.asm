@@ -1,0 +1,1222 @@
+@256
+D=A
+@SP
+M=D
+@Sys.init
+0;JMP
+// [END] Bootstrap
+
+// [FILE] Factorial.vm
+// function Factorial.factorial 0
+(Factorial.factorial)
+// push argument 0
+@0
+D=A
+@ARG
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 1
+@1
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// eq
+@BACK.0
+D=A
+@BACK
+M=D
+@EQ
+0;JMP
+(BACK.0)
+// if-goto BASE_CASE
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@Factorial.Factorial.factorial$BASE_CASE
+D;JNE
+// push argument 0
+@0
+D=A
+@ARG
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push argument 0
+@0
+D=A
+@ARG
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 1
+@1
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// sub
+@BACK.1
+D=A
+@BACK
+M=D
+@SUB
+0;JMP
+(BACK.1)
+// call Factorial.factorial 1
+@Factorial.Factorial.factorial$ret.2
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@5
+D=A
+@1
+D=D+A
+@SP
+D=M-D
+@ARG
+M=D
+@SP
+D=M
+@LCL
+M=D
+@Factorial.factorial
+0;JMP
+(Factorial.Factorial.factorial$ret.2)
+// call Mult.mult 2
+@Factorial.Factorial.factorial$ret.3
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@5
+D=A
+@2
+D=D+A
+@SP
+D=M-D
+@ARG
+M=D
+@SP
+D=M
+@LCL
+M=D
+@Mult.mult
+0;JMP
+(Factorial.Factorial.factorial$ret.3)
+// return
+@LCL
+D=M
+@R13
+M=D
+@5
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@R14
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@ARG
+A=M
+M=D
+@ARG
+D=M+1
+@SP
+M=D
+@R13
+D=M-1
+A=D
+D=M
+@THAT
+M=D
+@2
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@THIS
+M=D
+@3
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@ARG
+M=D
+@4
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@LCL
+M=D
+@R14
+A=M
+0;JMP
+// label BASE_CASE
+(Factorial.Factorial.factorial$BASE_CASE)
+// push constant 1
+@1
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// return
+@LCL
+D=M
+@R13
+M=D
+@5
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@R14
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@ARG
+A=M
+M=D
+@ARG
+D=M+1
+@SP
+M=D
+@R13
+D=M-1
+A=D
+D=M
+@THAT
+M=D
+@2
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@THIS
+M=D
+@3
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@ARG
+M=D
+@4
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@LCL
+M=D
+@R14
+A=M
+0;JMP
+
+// [FILE] Main.vm
+// function Main.main 0
+(Main.main)
+// push constant 4
+@4
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// call Factorial.factorial 1
+@Main.Main.main$ret.4
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@5
+D=A
+@1
+D=D+A
+@SP
+D=M-D
+@ARG
+M=D
+@SP
+D=M
+@LCL
+M=D
+@Factorial.factorial
+0;JMP
+(Main.Main.main$ret.4)
+// pop temp 1
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@5
+D=A
+@1
+D=D+A
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// push constant 3
+@3
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// call Factorial.factorial 1
+@Main.Main.main$ret.5
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@5
+D=A
+@1
+D=D+A
+@SP
+D=M-D
+@ARG
+M=D
+@SP
+D=M
+@LCL
+M=D
+@Factorial.factorial
+0;JMP
+(Main.Main.main$ret.5)
+// pop this 0
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@0
+D=A
+@THIS
+D=D+M
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// push temp 1
+@5
+D=A
+@1
+A=D+A
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push this 0
+@0
+D=A
+@THIS
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@BACK.6
+D=A
+@BACK
+M=D
+@ADD
+0;JMP
+(BACK.6)
+// pop static 4
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@Main.4
+M=D
+// push constant 321
+@321
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// return
+@LCL
+D=M
+@R13
+M=D
+@5
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@R14
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@ARG
+A=M
+M=D
+@ARG
+D=M+1
+@SP
+M=D
+@R13
+D=M-1
+A=D
+D=M
+@THAT
+M=D
+@2
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@THIS
+M=D
+@3
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@ARG
+M=D
+@4
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@LCL
+M=D
+@R14
+A=M
+0;JMP
+
+// [FILE] Mult.vm
+// function Mult.mult 2
+(Mult.mult)
+@0
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@0
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 0
+@0
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop local 0
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@0
+D=A
+@LCL
+D=D+M
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// push constant 0
+@0
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop local 1
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@1
+D=A
+@LCL
+D=D+M
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// label WHILE_LOOP
+(Mult.Mult.mult$WHILE_LOOP)
+// push local 1
+@1
+D=A
+@LCL
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push argument 1
+@1
+D=A
+@ARG
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// lt
+@BACK.7
+D=A
+@BACK
+M=D
+@LT
+0;JMP
+(BACK.7)
+// not
+@BACK.8
+D=A
+@BACK
+M=D
+@NOT
+0;JMP
+(BACK.8)
+// if-goto WHILE_END
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@Mult.Mult.mult$WHILE_END
+D;JNE
+// push local 0
+@0
+D=A
+@LCL
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push argument 0
+@0
+D=A
+@ARG
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@BACK.9
+D=A
+@BACK
+M=D
+@ADD
+0;JMP
+(BACK.9)
+// pop local 0
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@0
+D=A
+@LCL
+D=D+M
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// push local 1
+@1
+D=A
+@LCL
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 1
+@1
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@BACK.10
+D=A
+@BACK
+M=D
+@ADD
+0;JMP
+(BACK.10)
+// pop local 1
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // D->R13
+@R13
+M=D
+  // addr->R14
+@1
+D=A
+@LCL
+D=D+M
+@R14
+M=D
+  // R13->addrOfR14
+@R13
+D=M
+@R14
+A=M
+M=D
+// goto WHILE_LOOP
+@Mult.Mult.mult$WHILE_LOOP
+0;JMP
+// label WHILE_END
+(Mult.Mult.mult$WHILE_END)
+// push local 0
+@0
+D=A
+@LCL
+A=D+M
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// return
+@LCL
+D=M
+@R13
+M=D
+@5
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@R14
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@ARG
+A=M
+M=D
+@ARG
+D=M+1
+@SP
+M=D
+@R13
+D=M-1
+A=D
+D=M
+@THAT
+M=D
+@2
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@THIS
+M=D
+@3
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@ARG
+M=D
+@4
+D=A
+@R13
+D=M-D
+A=D
+D=M
+@LCL
+M=D
+@R14
+A=M
+0;JMP
+
+// [FILE] Sys.vm
+// function Sys.init 0
+(Sys.init)
+// call Main.main 0
+@Sys.Sys.init$ret.11
+D=A
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@5
+D=A
+@0
+D=D+A
+@SP
+D=M-D
+@ARG
+M=D
+@SP
+D=M
+@LCL
+M=D
+@Main.main
+0;JMP
+(Sys.Sys.init$ret.11)
+// label END
+(Sys.Sys.init$END)
+// goto END
+@Sys.Sys.init$END
+0;JMP
+//
+// PROCEDURES SECTION
+//
+(ADD)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+D=D+M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(SUB)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+D=D-M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(NEG)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+D=-D
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(GT)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+
+@R13
+D=D-M
+@gt.TRUE
+D;JGT
+(gt.FALSE)
+D=0
+@gt.DONE
+0;JMP
+(gt.TRUE)
+D=-1
+(gt.DONE)
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(LT)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+
+@R13
+D=D-M
+@lt.TRUE
+D;JLT
+(lt.FALSE)
+D=0
+@lt.DONE
+0;JMP
+(lt.TRUE)
+D=-1
+(lt.DONE)
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(EQ)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // save to R13
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+  // compute
+@R13
+D=D-M
+@eq.TRUE
+D;JEQ
+(eq.FALSE)
+D=0
+@eq.DONE
+0;JMP
+(eq.TRUE)
+D=-1
+(eq.DONE)
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(AND)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+D=D&M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(OR)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+@R13
+D=D|M
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(NOT)
+  //POP
+@SP
+M=M-1
+A=M
+D=M
+D=!D
+  //PUSH
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@DONE
+0;JMP
+(DONE)
+@BACK
+A=M
+0;JMP
+(END)
+@END
+0;JMP

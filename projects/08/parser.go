@@ -29,18 +29,18 @@ func Advance(rawLine string) Instruction {
 	//
 	// Assume that the VM code is error-free (A1).
 
-    inpt := strings.TrimSpace(rawLine)
-    if len(inpt) == 0 || inpt[0:2] == "//" {
+	inpt := strings.TrimSpace(rawLine)
+	if len(inpt) == 0 || inpt[0:2] == "//" {
 		// Empty or comment line (A1).
 		return ""
 	}
 
-    i := 0  // index of first '/'
-    for ; i < len(inpt); i++ {
-        if inpt[i] == '/' {
-            break
-        }
-    }
+	i := 0 // index of first '/'
+	for ; i < len(inpt); i++ {
+		if inpt[i] == '/' {
+			break
+		}
+	}
 	inpt = strings.TrimSpace(inpt[:i])
 	if len(inpt) == 0 {
 		return inpt

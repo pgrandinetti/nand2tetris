@@ -1,0 +1,9 @@
+function foo 1  // Returns arg1 + arg2 + 7
+    push argument 0
+    push argument 1
+    add
+    push constant 7
+    pop local 0    // just to test the local segment
+    push local 0
+    add
+    return

@@ -1,0 +1,28 @@
+function Main.main 0
+    // compute factorial(4)
+    push constant 4
+    call Factorial.factorial 1
+    // put result in 'temp 1' (R6) (expects 24)
+    pop temp 1
+    // now stack has 0 elements
+
+    // compute factorial(3)
+    push constant 3
+    call Factorial.factorial 1
+    // put result in temp 3 (R8) (expects 6)
+    pop this 0
+    // now stack has zero elements
+
+    // copy temp 1 and 3 (R6 and R8) onto stack
+    push temp 1
+    push this 0
+    add  // expect 30
+    // now stack has 1 element
+
+    // put result in static var (expects 30)
+    pop static 4
+    // now stack has 0 elements
+
+    // every function must return something
+    push constant 321
+    return
