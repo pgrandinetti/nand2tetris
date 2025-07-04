@@ -148,6 +148,7 @@ func CompileParameterList(content []byte, next int) int {
 	if err != nil {
 		panic("unterminated parameterList: expected |)|")
 	}
+	fmt.Println("</parameterList>")
 	return prev
 }
 
@@ -218,6 +219,8 @@ func CompileStatements(content []byte, next int) int {
 	var prev int
 	var err error
 
+	fmt.Println("<statements>")
+
 	prev = next
 	tkn, next, err = Advance(content, next)
 	for err == nil {
@@ -232,7 +235,7 @@ func CompileStatements(content []byte, next int) int {
 		} else if tkn == "return" {
 			next = CompileReturn(content, prev)
 		} else {
-			// no statement
+			fmt.Println("</statements>")
 			return prev
 		}
 		prev = next
@@ -306,11 +309,13 @@ func CompileWhile(content []byte, next int) int {
 	process(tkn, "(", SYMBOL)
 	next = CompileExpression(content, next)
 	tkn, next, _ = Advance(content, next)
+	process(tkn, ")", SYMBOL)
+	tkn, next, _ = Advance(content, next)
 	process(tkn, "{", SYMBOL)
 	next = CompileStatements(content, next)
 	tkn, next, _ = Advance(content, next)
 	process(tkn, "}", SYMBOL)
-	fmt.Println("</whileStatement")
+	fmt.Println("</whileStatement>")
 	return next
 }
 
@@ -412,7 +417,7 @@ func CompileTerm(content []byte, next int) int {
 func CompileSubroutineCall(content []byte, next int) int {
 	var tkn Token
 
-	fmt.Println("<subroutineCall>")
+	//fmt.Println("<subroutineCall>")
 	tkn, next, _ = Advance(content, next)
 	process(tkn, tkn, IDENTIFIER)
 	tkn, next, _ = Advance(content, next)
@@ -433,21 +438,22 @@ func CompileSubroutineCall(content []byte, next int) int {
 	} else {
 		panic(fmt.Sprintf("unterminated subroutineCall at index %d. expected |.| or |(|", next))
 	}
-	fmt.Println("</subroutineCall>")
+	//fmt.Println("</subroutineCall>")
 	return next
 }
 
 func CompileExpressionList(content []byte, next int) (int, int) {
 	var tkn Token
 	var current, nExprs int
+	fmt.Println("<expressionList>")
 
 	current = next
 	tkn, next, _ = Advance(content, next)
 	if tkn == ")" {
+		fmt.Println("</expressionList>")
 		// expressionList is empty
 		return current, 0
 	}
-	fmt.Println("<expressionList>")
 	nExprs++
 	next = CompileExpression(content, current)
 	current = next
@@ -469,6 +475,7 @@ func CompileOp(content []byte, next int) int {
 	return next
 }
 
+/*
 func main() {
 	content := `
     class X {
@@ -487,3 +494,4 @@ func main() {
     `
 	_ = CompileClass([]byte(content), 0)
 }
+*/
