@@ -13,6 +13,7 @@ func TestAdvance(t *testing.T) {
      comment*/
         x /y  // to test the single '/'
      }
+     let s = "  a string"   ;
      //comment to end file
     `
 	inptb := []byte(inpt)
@@ -34,6 +35,11 @@ func TestAdvance(t *testing.T) {
 		{"tkn": "/", "next": 103, "err": nil},
 		{"tkn": "y", "next": 104, "err": nil},
 		{"tkn": "}", "next": 138, "err": nil},
+		{"tkn": "let", "next": 147, "err": nil},
+		{"tkn": "s", "next": 149, "err": nil},
+		{"tkn": "=", "next": 151, "err": nil},
+		{"tkn": "\"  a string\"", "next": 164, "err": nil},
+		{"tkn": ";", "next": 168, "err": nil},
 		{"tkn": "", "next": -1, "err": io.EOF}}
 	for i := 0; i < len(exp); i++ {
 		tkn, next, err := Advance(inptb, start)
@@ -47,5 +53,50 @@ func TestAdvance(t *testing.T) {
 			t.Errorf("expected error %v computed error %v", exp[i]["err"], err)
 		}
 		start = next
+	}
+}
+
+func TestUnterminatedString(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Advance did not panic")
+		}
+	}()
+	inpt := `
+        let x = "this is not finishe
+        d"
+        `
+	inptb := []byte(inpt)
+	var err error = nil
+	start := 0
+	for err == nil {
+		_, start, err = Advance(inptb, start)
+	}
+}
+
+func TestUnterminatedComent(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Advance did not panic")
+		}
+	}()
+	inpt := `
+        let x = /*this is not finishe
+        d"
+        `
+	inptb := []byte(inpt)
+	var err error = nil
+	start := 0
+	for err == nil {
+		_, start, err = Advance(inptb, start)
+	}
+}
+
+func TestTokenType(t *testing.T) {
+	inpt := "foo"
+	exp := IDENTIFIER
+	res := TokenType(inpt)
+	if res != exp {
+		t.Errorf("token %s expected type %v computed %v", inpt, exp, res)
 	}
 }

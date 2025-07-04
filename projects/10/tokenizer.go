@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	//"strings"
+	"regexp"
 	"strconv"
 	"unicode"
 )
@@ -77,6 +78,11 @@ func isIntConst(s string) (int, error) {
 	return strconv.Atoi(s)
 }
 
+func isKeyword(s string) bool {
+	_, ok := keywordsMap[s]
+	return ok
+}
+
 func Advance(content []byte, start int) (Token, int, error) {
 	// Generate the next token from the 'content', starting the tokenize from index 'start'.
 	// If no error occurs, returns the Token found, and the index from which starting next.
@@ -86,7 +92,7 @@ func Advance(content []byte, start int) (Token, int, error) {
 	end := start
 	var c, c2 byte
 	for {
-		// Skip whitespaces
+		// Skip whitespaces and comments
 		if end >= len(content) {
 			return "", -1, io.EOF
 		}
@@ -143,6 +149,22 @@ func Advance(content []byte, start int) (Token, int, error) {
 	}
 	// Else build and return token.
 	s1 := end - 1 // start of this token
+	if c == '"' {
+		// skip until next "
+		for {
+			if end >= len(content) {
+				panic(fmt.Sprintf("unterminated string at index %d", s1))
+			}
+			if content[end] == '\n' {
+				panic(fmt.Sprintf("invalid string constant at index %d", s1))
+			}
+			if content[end] == '"' {
+				break
+			}
+			end++
+		}
+		return string(content[s1 : end+1]), end + 1, nil
+	}
 	for {
 		if end >= len(content) {
 			panic(fmt.Sprintf("unterminated token at index %d", s1))
@@ -157,10 +179,31 @@ func Advance(content []byte, start int) (Token, int, error) {
 	return tkn, end, nil
 }
 
-func TokenType() TokenT {
-	return KEYWORD
+func TokenType(tkn Token) TokenT {
+	if len(tkn) == 1 && isSymbol(tkn[0]) {
+		return SYMBOL
+	}
+	if isKeyword(tkn) {
+		return KEYWORD
+	}
+	if _, err := isIntConst(tkn); err == nil {
+		return INT_CONST
+	}
+	if tkn[0] == '"' && tkn[len(tkn)-1] == '"' {
+		return STRING_CONST
+	}
+	pattern := `^[a-zA-Z_][a-zA-Z0-9_]*$`
+	match, _ := regexp.MatchString(pattern, tkn)
+	if match {
+		return IDENTIFIER
+	}
+	panic(fmt.Sprintf("token not valid: %s", tkn))
 }
 
-func Keyword() KeywordT {
-	return CLASS
+func Keyword(tkn Token) KeywordT {
+	val, ok := keywordsMap[tkn]
+	if !ok {
+		panic(fmt.Sprintf("token is not a keyword: %s", tkn))
+	}
+	return val
 }
