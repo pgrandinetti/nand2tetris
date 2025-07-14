@@ -1,0 +1,89 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */ 
+class Memory {
+    static int freelist;
+
+    /** Initializes the class. */
+    function void init() {
+        let freelist = 2048;
+        let freelist[0] = 14336;
+        let freelist[1] = 0;
+        return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        var Array memory;
+        let memory = 0;
+        return memory[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        var Array memory;
+        let memory = 0;
+        let memory[address] = value;
+        return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function Array alloc(int size) {
+        var int current, previous;    // memory pointers. current will be returned
+        var int size2;                // block size ( = size+2)
+        var int newNext;              // used when resizing is possible for the current block
+
+        let current = freelist;
+        let previous = 0;
+        let size2 = size + 2;
+
+        // NB. pointer[1] is pointer.next; pointer[0] is pointer.size
+
+        while(current[0] < size2) {    // until cannot find a block with current.size >= size2
+            if (current[1] = 0) {
+                do Sys.error(1);       // memory error
+            }
+            let previous = current;
+            let current = current[1];  // current <- current.next
+        }
+
+        if (previous = 0) {                          // then current block = freelist
+            let freelist = freelist + size2;         // address(freelist) <- address(freelist) + size;
+            let freelist[1] = 0;                     // newFreelist.next <- null
+            let freelist[0] = current[0] - size2;    // newFreelist.size <- oldSize - size
+            let current[0] = size2;                  // size of the new block
+            return current + 1;                      // keep current[0] to hold the block size
+        }
+
+        if (current[0] > size2 + 2) {                    // then a new smaller block can be made from current 
+            let previous[1] = current + size + 1;        // new (smaller) segment starts at address(current) + size (+1 to keep the size)
+            let newNext = previous[1];                   // pointer to 'next' for the new segment
+            let newNext[0] = current[0] - size - 1;      // size of the new segment
+            let newNext[1] = current[1];                 // new segment . next is the same as old segment . next
+            let current[0] = size;                       // will be used for deallocation
+        }
+
+        // do not change current[0] if it was not changed in 'if (current[0] > size2 + 2)'
+        return current + 1;
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+        var int last;
+        let last = freelist;
+        while (~(last[1] = 0)) {
+            let last = last[1];
+        }
+        let last[1] = o - 1;         // block[-1] holds the size
+        return;
+    }    
+}
